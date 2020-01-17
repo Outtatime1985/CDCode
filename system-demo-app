@@ -15,6 +15,7 @@ println("\n*************Output*****************")
 
 String FOLDER = "DEFAULT"
 String APPLICATION_TYPE = "GENRIC"
+String APPLICATION_TYPE = "test"
 
 def randomName = UUID.randomUUID().toString().substring(0, 8)
 
