@@ -1,0 +1,128 @@
+import com.automic.cd.code.cda.ValueMode
+import com.automic.cd.code.cda.Application
+import com.automic.cd.code.cda.Component
+import com.automic.cd.code.cda.DateTime
+import com.automic.cd.code.cda.Protected
+import com.automic.cd.code.cda.ApplicationWorkflow
+import com.automic.cd.code.cda.AutomationEngineHelper
+import com.automic.cd.code.cda.ComponentWorkflow
+
+
+println("\n************CDA Server Info*************")
+println("CDA Url: " + System.getenv().getOrDefault("CDA_SERVER", ""))
+println("CDA Username: " + System.env.CDA_USER ?: "")
+println("\n*************Output*****************")
+
+String FOLDER = "DEFAULT"
+String APPLICATION_TYPE = "GENRIC"
+
+def randomName = UUID.randomUUID().toString().substring(0, 8)
+
+def myApp = new Application()
+myApp.name = "Test App 02"// + randomName
+myApp.type = APPLICATION_TYPE
+myApp.folder = FOLDER
+myApp.description = "Alabala Test Application"
+myApp.owner = "300/AUTOMIC/AUTOMIC"
+
+//myApp.customProperty["MyDateTime"] = "2019-11-30T00:00:00Z"
+//myApp.customProperty["test1"] = "test123444"
+//myApp.customProperty["test2"] = 1234444
+
+myApp.dynamicProperty["/demo/password"] = new Protected("my_value")
+myApp.dynamicProperty["/demo/time"] = new DateTime("11/29/2017 05:31 am", ValueMode.STATIC)
+myApp.dynamicProperty["/demo/text"] = "my text"
+myApp.dynamicProperty["demo/float"] = 123444444444444
+myApp.dynamicProperty["demo/float_expression"] = new DateTime("{@target/custom/staging_base_directory/alabala}", ValueMode.EXPRESSION)
+
+def comp = new Component()
+comp.name = "Jeny Test Component 1"// + randomName
+comp.type = "Generic"
+comp.description = "my component"
+comp.deploymentTargetType = "Generic"
+comp.application = myApp
+
+comp.dynamicProperty["/demo/password"] = new Protected("my_value")
+comp.dynamicProperty["/demo/time"] = new DateTime("11/29/2017 05:31 am", ValueMode.STATIC)
+comp.dynamicProperty["/demo/text"] = "my text"
+comp.dynamicProperty["/demo/float"] = 123
+comp.dynamicProperty["/demo/float_expression"] = new DateTime("{@target/custom/staging_base_directory}", ValueMode.EXPRESSION)
+
+def comp2 = new Component()
+comp2.name = "Jeny Test Component 2"// + randomName
+comp2.type = "Generic"
+comp2.deploymentTargetType = "Generic"
+//comp2.link[comp.name] = "To_Component_1_Link"
+comp2.application = myApp
+
+def comp3 = new Component()
+comp3.name = "Jeny Test Component 3"// + randomName
+comp3.type = "Generic"
+comp3.deploymentTargetType = "Generic"
+//comp2.link[comp.name] = "To_Component_1_Link"
+comp3.application = myApp
+
+def comp4 = new Component()
+comp4.name = "Jeny Test Component 4"// + randomName
+comp4.type = "Generic"
+comp4.deploymentTargetType = "Generic"
+//comp2.link[comp.name] = "To_Component_1_Link"
+comp4.application = myApp
+
+appWF = new ApplicationWorkflow() 
+appWF.type = "install"
+appWF.name = "test script workflow 2"
+//appWF.folder = FOLDER
+//appWF.owner = "100/Jeny/Jeny"
+//appWF.customProperty["name"] = "value"
+appWF.dynamicProperty["/name"] = "test123"
+appWF.dynamicProperty["name1"] = "test123"
+appWF.application = myApp
+
+appWF1 = new ApplicationWorkflow() 
+appWF1.type = "install"
+appWF1.name = "test script workflow 1"
+//appWF.folder = FOLDER
+//appWF.owner = "100/Jeny/Jeny"
+//appWF.customProperty["name"] = "value"
+appWF1.dynamicProperty["/name"] = "test123"
+appWF1.dynamicProperty["name1"] = "test123"
+appWF1.application = myApp
+
+compWF1 = new ComponentWorkflow()
+compWF2 = new ComponentWorkflow()
+compWF3 = new ComponentWorkflow()
+compWF4 = new ComponentWorkflow()
+
+compWF1.component = comp
+compWF1.definition = "C:\\CDCode\\Groovy Scripts\\Test\\RM.DEMOAPP.DATABASE.1.869.json"
+compWF1.previous = [ComponentWorkflow.getStart()]
+compWF1.next = [compWF2]
+compWF1.applicationWorkflow = appWF
+
+//compWF2 = new ComponentWorkflow()
+compWF2.component = comp2
+compWF2.definition = "C:\\CDCode\\Groovy Scripts\\Test\\RM.DEMOAPP.WEBAPP.1.869.json"
+compWF2.previous = [compWF1]
+compWF2.next = [compWF4]
+compWF2.applicationWorkflow = appWF
+
+compWF3.component = comp3
+compWF3.definition = "C:\\CDCode\\Groovy Scripts\\Test\\RM.DEMOAPP.DATABASE.1.869.json"
+compWF3.previous = [ComponentWorkflow.getStart()]
+compWF3.next = [ComponentWorkflow.getEnd()]
+compWF3.applicationWorkflow = appWF
+
+compWF4.component = comp4
+compWF4.definition = "C:\\CDCode\\Groovy Scripts\\Test\\RM.DEMOAPP.WEBAPP.1.869.json"
+compWF4.previous = [compWF2]
+compWF4.next = [ComponentWorkflow.getEnd()]
+compWF4.applicationWorkflow = appWF
+
+myApp.build()
+
+//AutomationEngineHelper helper = new AutomationEngineHelper()
+//helper.application = "Test App 01"
+//helper.applicationWorkflow = "test worklow 1"
+//helper.destination = "C:\\CDCode\\Groovy Scripts"
+//helper.exportComponentWorkflow()
